@@ -1,0 +1,16 @@
+[workspace]
+resolver = "3"
+members = [
+    "fabela_core",
+    "fabela",
+]
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+opt-level = 3
+panic = "abort"
+
+[profile.test]
+opt-level = 3
