@@ -5,6 +5,9 @@ members = [
     "fabela",
 ]
 
+[workspace.dependencies]
+tokio = { version = "1.43.0", features = ["full"] }
+
 [profile.release]
 strip = true
 lto = true

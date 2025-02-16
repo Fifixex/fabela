@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-tokio = { version = "1.43.0", features = ["full"] }
+fabela_core = { version = "0.1.0", path = "../fabela_core" }
+tokio = { workspace = true }
+tracing = { version = "0.1.41", features = ["log"] }
 
 [[bin]]
 name = "fabela"
