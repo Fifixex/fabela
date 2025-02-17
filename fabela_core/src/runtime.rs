@@ -1,9 +1,7 @@
 use crate::vm::Vm;
 use std::error::Error;
 
-pub struct Runtime {
-
-}
+pub struct Runtime {}
 
 impl Runtime {
     pub async fn new(vm: &Vm) -> Result<Self, Box<dyn Error + Send + Sync>> {
