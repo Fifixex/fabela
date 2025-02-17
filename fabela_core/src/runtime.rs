@@ -1,5 +1,5 @@
 use crate::vm::Vm;
-pub use std::error::Error;
+use std::error::Error;
 
 pub struct Runtime {}
 

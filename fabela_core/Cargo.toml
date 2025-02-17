@@ -4,4 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+boa_engine = "0.20.0"
 tokio = { workspace = true }
