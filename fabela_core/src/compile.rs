@@ -1,8 +1,7 @@
 use rand::Rng;
-use std::{
-    error::Error,
-    path::{Path, PathBuf},
-};
+use std::error::Error;
+use std::path::{Path, PathBuf};
+use tracing::info;
 
 use crate::binary::{Binary, BinaryOptions};
 
@@ -11,13 +10,21 @@ where
     P: AsRef<Path>,
 {
     let binary = Binary::new();
-    let path = path.as_ref();
-    let temp_path = get_temp_path(&path);
+    let entrypoint = path.as_ref();
+    let output_path = std::env::current_dir()?.join("fabela");
+    let temp_path = get_temp_path(&output_path);
     let file = std::fs::File::create(&temp_path)?;
-    let output_path = Path::new("foo.txt").to_path_buf();
-    let writer = binary
-        .load_and_write_binary(&BinaryOptions { file, output_path })
-        .await;
+    binary
+        .load_and_write_binary(BinaryOptions { file, entrypoint })
+        .await
+        .unwrap();
+
+    info!(
+        "Compile {} to {}",
+        entrypoint.to_string_lossy(),
+        output_path.to_string_lossy(),
+    );
+
     Ok(())
 }
 

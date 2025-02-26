@@ -1,4 +1,4 @@
 pub mod binary;
-pub mod compiler;
+pub mod compile;
 pub mod runtime;
 pub mod vm;
