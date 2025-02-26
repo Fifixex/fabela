@@ -1,4 +1,4 @@
-<a href="https://fabela.vercel.app">
+<a href="/">
   <img src="https://github.com/user-attachments/assets/d6e6a169-14b6-433d-ac9e-0815e05f0f2b" alt="Logo" height="190">
 </a>
 <p>
@@ -13,7 +13,7 @@
 
 ## 📝 Documentation
 
-For documentation and guides, visit our [website](https://fabela.vercel.app).
+For documentation and guides, visit our [Wiki](https://github.com/Fifixex/fabela/wiki).
 
 ## 💕 Contributing
 
