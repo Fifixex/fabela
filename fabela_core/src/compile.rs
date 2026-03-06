@@ -4,11 +4,9 @@ use tracing::info;
 use crate::binary::Binary;
 use crate::error::{FabelaError, IoContext};
 
-pub fn compile(
-    input_path: &Path,
-    output_path: Option<&Path>,
-) -> crate::error::Result<PathBuf> {
-    let js_source = std::fs::read_to_string(input_path).io_context(format!("Reading JS file '{}'", input_path.display()))?;
+pub fn compile(input_path: &Path, output_path: Option<&Path>) -> crate::error::Result<PathBuf> {
+    let js_source = std::fs::read_to_string(input_path)
+        .io_context(format!("Reading JS file '{}'", input_path.display()))?;
     let output = resolve_output_path(input_path, output_path)?;
     let base_binary = std::env::current_exe().io_context("Resolving fabela executable path")?;
 
@@ -21,16 +19,19 @@ pub fn compile(
     Ok(output)
 }
 
-fn resolve_output_path(input_path: &Path, output_path: Option<&Path>) -> crate::error::Result<PathBuf> {
+fn resolve_output_path(
+    input_path: &Path,
+    output_path: Option<&Path>,
+) -> crate::error::Result<PathBuf> {
     if let Some(p) = output_path {
         return Ok(p.to_path_buf());
     }
 
     let stem = input_path
         .file_stem()
-        .ok_or_else(|| FabelaError::Compile(
-            format!("File '{}' has no valid name", input_path.display()),
-        ))?
+        .ok_or_else(|| {
+            FabelaError::Compile(format!("File '{}' has no valid name", input_path.display()))
+        })?
         .to_string_lossy();
 
     let name = if cfg!(windows) {

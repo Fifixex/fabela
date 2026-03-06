@@ -11,10 +11,7 @@ pub enum FabelaError {
     },
 
     #[error("Runtime Error: {0}")]
-    #[diagnostic(
-        code(fabela::vm),
-        help("Check JS Syntaxis")
-    )]
+    #[diagnostic(code(fabela::vm), help("Check JS Syntaxis"))]
     Vm(String),
 
     #[error("UTF-8 payload invalid")]
@@ -22,10 +19,7 @@ pub enum FabelaError {
     Utf8(#[from] std::string::FromUtf8Error),
 
     #[error("{0}")]
-    #[diagnostic(
-        code(fabela::compile),
-        help("Invalid .js file")
-    )]
+    #[diagnostic(code(fabela::compile), help("Invalid .js file"))]
     Compile(String),
 
     /// Generic runtime error
