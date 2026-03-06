@@ -5,8 +5,12 @@ edition = "2024"
 
 [dependencies]
 fabela_core = { version = "0.1.0", path = "../fabela_core" }
+clap = { workspace = true }
 tokio = { workspace = true }
 tracing = { version = "0.1.41", features = ["log"] }
+tracing-subscriber = { workspace = true }
+miette = { workspace = true }
+thiserror = { workspace = true }
 
 [[bin]]
 name = "fabela"

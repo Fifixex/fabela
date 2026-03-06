@@ -11,3 +11,5 @@ rand = "0.9.0"
 tempfile = "=3"
 tokio = { workspace = true }
 tracing = { workspace = true }
+thiserror = { workspace = true }
+miette = { workspace = true }
