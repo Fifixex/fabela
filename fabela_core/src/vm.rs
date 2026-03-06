@@ -1,7 +1,10 @@
 use rquickjs::{Context, Runtime};
 use std::path::Path;
 
-use crate::{error::{FabelaError, IoContext}, modules};
+use crate::{
+    error::{FabelaError, IoContext},
+    modules,
+};
 
 const MEMORY_LIMIT: usize = 32 * 1024 * 1024; // 32 MB
 const STACK_SIZE: usize = 1024 * 1024; // 1 MB
