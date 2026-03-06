@@ -12,13 +12,13 @@ impl Runtime {
 
     pub fn execute_file(&self, filename: &str) -> crate::error::Result<()> {
         self.vm.run_file(filename)?;
-        self.vm.run_pending_jobs();
+        self.vm.run_pending_jobs()?;
         Ok(())
     }
 
     pub fn execute_source(&self, source: &str) -> crate::error::Result<()> {
         self.vm.run_source(source)?;
-        self.vm.run_pending_jobs();
+        self.vm.run_pending_jobs()?;
         Ok(())
     }
 }
