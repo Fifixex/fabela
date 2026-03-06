@@ -12,6 +12,8 @@ pub fn compile(input_path: &Path, output_path: Option<&Path>) -> crate::error::R
 
     info!("Compiling {} -> {}", input_path.display(), output.display());
 
+    Binary::bundle(&base_binary, &js_source, &output)?;
+
     #[cfg(unix)]
     set_executable_permissions(&output)?;
 

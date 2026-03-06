@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
 use crate::error::{IoContext, Result};
@@ -25,10 +25,23 @@ impl Binary {
     /// 1. Copying the base fabela binary
     /// 2. Appending the JS source compressed with zstd
     /// 3. Appending a trailer with [payload_size: u64][magic: 8 bytes]
+    pub fn bundle(
+      base_binary_path: &Path,
+      js_source: &str,
+      output_path: &Path,
+    ) -> crate::error::Result<()> {
+        let base_binary = std::fs::read(base_binary_path).io_context(format!("reading binary base '{}'", base_binary_path.display()))?;
+        let compressed = zstd::encode_all(js_source.as_bytes(), ZSTD_LEVEL).io_context("compressing JavaScript code with zstd")?;
 
-    /// (Not implemented yet)
-    pub fn bundle() {
-        println!("soon");
+        let mut output = File::create(output_path).io_context(format!("creating output file '{}'", output_path.display()))?;
+        output.write_all(&base_binary).io_context("writing binary base")?;
+        output.write_all(&compressed).io_context("writing compressed payload")?;
+
+        let payload_size = compressed.len() as u64;
+        output.write_all(&payload_size.to_le_bytes()).io_context("writing trailer size")?;
+        output.write_all(MAGIC).io_context("writing magic bytes")?;
+        output.flush().io_context("flushing output file")?;
+        Ok(())
     }
 
     pub fn extract_embedded_source() -> Result<Option<String>> {
