@@ -3,6 +3,9 @@ use std::path::Path;
 
 use crate::error::{FabelaError, IoContext};
 
+const MEMORY_LIMIT: usize = 32 * 1024 * 1024; // 32 MB
+const STACK_SIZE: usize = 1024 * 1024;         // 1 MB
+
 pub struct Vm {
     runtime: Runtime,
     context: Context,
@@ -11,8 +14,10 @@ pub struct Vm {
 impl Vm {
     pub fn new() -> crate::error::Result<Self> {
         let runtime = Runtime::new().map_err(|e| FabelaError::Vm(format!("QuickJS runtime init error: {e}")))?;
-        runtime.set_memory_limit(32 * 1024 * 1024); // 32 MB
-        runtime.set_max_stack_size(1024 * 1024);    // 1 MB
+
+        runtime.set_memory_limit(MEMORY_LIMIT);
+        runtime.set_max_stack_size(STACK_SIZE);
+
         let context = Context::full(&runtime).map_err(|e| FabelaError::Vm(format!("QuickJS context creation error: {e}")))?;
         Ok(Vm { runtime, context })
     }
