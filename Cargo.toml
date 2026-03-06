@@ -8,7 +8,8 @@ members = [
 [workspace.dependencies]
 tokio = { version = "1.43.0", features = ["full"] }
 tracing = { version = "0.1.41", features = ["log"] }
-tracing-subscriber = "0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+clap = { version = "4", features = ["derive"] }
 
 [profile.release]
 strip = true
