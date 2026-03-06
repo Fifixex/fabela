@@ -23,9 +23,13 @@ impl Vm {
         Ok(value)
     }
 
-    pub async fn run(&mut self, source: String) -> Result<JsValue, Box<dyn Error>> {
+    pub async fn run_source(&mut self, source: String) -> Result<JsValue, Box<dyn Error>> {
         let bytes = Source::from_bytes(&source);
         let value = self.context.eval(bytes).unwrap();
         Ok(value)
+    }
+
+    pub fn run_pending_jobs(&self) {
+        // soon
     }
 }

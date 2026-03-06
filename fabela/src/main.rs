@@ -1,21 +1,66 @@
-use fabela_core::vm::Vm;
-use std::{error::Error, process, time::Instant};
-use tracing::info;
+mod runner;
+mod build;
+mod init;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    let now = Instant::now();
+use clap::{Parser, Subcommand};
+use fabela_core::error::Result;
+use std::{path::PathBuf, process};
 
-    info!("Starting runtime... ✨");
+use crate::{build::build_file, init::init_tracing, runner::{run_embedded, run_file}};
 
-    let mut vm = Vm::new().await?;
-    info!("Initialized VM in {}ms", now.elapsed().as_millis());
+#[derive(Parser)]
+#[command(
+  name = "fabela",
+  version,
+  about = "🥀 tiny js runtime ;;"
+)]
+struct Cli {
+  #[command(subcommand)]
+  command: Option<Commands>
+}
 
-    run(&mut vm).await.unwrap();
+#[derive(Subcommand)]
+enum Commands {
+  Run {
+    file: PathBuf,
+  },
+  Build {
+    file: PathBuf,
+    #[arg(short, long)]
+    output: Option<PathBuf>,
+  }
+}
+
+fn main() {
+    init_tracing();
+
+    if let Err(e) = try_run() {
+        eprintln!("{:?}", miette::Report::new(e));
+        process::exit(1);
+    }
+}
+
+fn try_run() -> Result<()> {
+    if run_embedded()? {
+        return Ok(());
+    }
+
+    let cli = Cli::parse();
+
+    match cli.command {
+        Some(Commands::Run { file }) => run_file(file)?,
+        Some(Commands::Build { file, output }) => build_file(file, output)?,
+        None => print_help(),
+    }
+
     Ok(())
 }
 
-async fn run(vm: &mut Vm) -> Result<i32, Box<dyn Error>> {
-    vm.run_file("./index.js").await?;
-    process::exit(1);
+fn print_help() {
+    eprintln!("Fabela — Tiny JavaScript runtime\n");
+    eprintln!("Usage:");
+    eprintln!("  fabela run <file.js>        Run a JavaScript file");
+    eprintln!("  fabela build <file.js>      Compile to standalone executable");
+    eprintln!("  fabela --version            Show version");
+    eprintln!("  fabela --help               Show help");
 }
