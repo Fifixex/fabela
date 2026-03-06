@@ -13,7 +13,7 @@ pub fn build_file(file: PathBuf, output: Option<PathBuf>) -> Result<()> {
 
     let size = fs::metadata(&output_path)
         .map_err(|e| FabelaError::Io {
-            context: format!("Leyendo metadata de '{}'", output_path.display()),
+            context: format!("reading metadata from '{}'", output_path.display()),
             source: e,
         })?
         .len();
