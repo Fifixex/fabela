@@ -1,34 +1,34 @@
-mod runner;
 mod build;
 mod init;
+mod runner;
 
 use clap::{Parser, Subcommand};
 use fabela_core::error::Result;
 use std::{path::PathBuf, process};
 
-use crate::{build::build_file, init::init_tracing, runner::{run_embedded, run_file}};
+use crate::{
+    build::build_file,
+    init::init_tracing,
+    runner::{run_embedded, run_file},
+};
 
 #[derive(Parser)]
-#[command(
-  name = "fabela",
-  version,
-  about = "🥀 tiny js runtime ;;"
-)]
+#[command(name = "fabela", version, about = "🥀 tiny js runtime ;;")]
 struct Cli {
-  #[command(subcommand)]
-  command: Option<Commands>
+    #[command(subcommand)]
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-  Run {
-    file: PathBuf,
-  },
-  Build {
-    file: PathBuf,
-    #[arg(short, long)]
-    output: Option<PathBuf>,
-  }
+    Run {
+        file: PathBuf,
+    },
+    Build {
+        file: PathBuf,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
 }
 
 fn main() {
