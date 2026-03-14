@@ -44,7 +44,7 @@ fn js_err_msg(ctx: &Ctx<'_>, msg: &str) -> rquickjs::Error {
 
 #[cfg(windows)]
 fn get_hkey(name: &str) -> Option<RegKey> {
-    match name.to_uppercase().as_str() {
+    match name.to_ascii_uppercase().as_str() {
         "HKCU" | "HKEY_CURRENT_USER" => Some(RegKey::predef(HKEY_CURRENT_USER)),
         "HKLM" | "HKEY_LOCAL_MACHINE" => Some(RegKey::predef(HKEY_LOCAL_MACHINE)),
         "HKCR" | "HKEY_CLASSES_ROOT" => Some(RegKey::predef(HKEY_CLASSES_ROOT)),
