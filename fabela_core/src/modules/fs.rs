@@ -1,10 +1,7 @@
 use rquickjs::{Ctx, Function, Object, Result};
 use std::fs;
 
-fn throw_fs_error<T>(ctx: &Ctx<'_>, op: &str, err: std::io::Error) -> Result<T> {
-    let msg = format!("fs.{op}: {err}");
-    Err(ctx.throw(rquickjs::String::from_str(ctx.clone(), &msg)?.into_value()))
-}
+use crate::helpers::throw::throw_error;
 
 pub fn register(ctx: &Ctx<'_>) -> Result<()> {
     let globals = ctx.globals();
@@ -15,7 +12,7 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
         Function::new(
             ctx.clone(),
             |ctx: Ctx<'_>, path: String| -> Result<String> {
-                fs::read_to_string(&path).or_else(|e| throw_fs_error(&ctx, "readFileSync", e))
+                fs::read_to_string(&path).or_else(|e| throw_error(&ctx, "readFileSync", e))
             },
         )?,
     )?;
@@ -25,7 +22,7 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
         Function::new(
             ctx.clone(),
             |ctx: Ctx<'_>, path: String, data: String| -> Result<()> {
-                fs::write(&path, &data).or_else(|e| throw_fs_error(&ctx, "writeFileSync", e))
+                fs::write(&path, &data).or_else(|e| throw_error(&ctx, "writeFileSync", e))
             },
         )?,
     )?;
@@ -40,14 +37,14 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
     fs_obj.set(
         "mkdirSync",
         Function::new(ctx.clone(), |ctx: Ctx<'_>, path: String| -> Result<()> {
-            fs::create_dir_all(&path).or_else(|e| throw_fs_error(&ctx, "mkdirSync", e))
+            fs::create_dir_all(&path).or_else(|e| throw_error(&ctx, "mkdirSync", e))
         })?,
     )?;
 
     fs_obj.set(
         "rmdirSync",
         Function::new(ctx.clone(), |ctx: Ctx<'_>, path: String| -> Result<()> {
-            fs::remove_dir_all(&path).or_else(|e| throw_fs_error(&ctx, "rmdirSync", e))
+            fs::remove_dir_all(&path).or_else(|e| throw_error(&ctx, "rmdirSync", e))
         })?,
     )?;
 
@@ -57,10 +54,10 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
             ctx.clone(),
             |ctx: Ctx<'_>, path: String| -> Result<Vec<String>> {
                 let entries =
-                    fs::read_dir(&path).or_else(|e| throw_fs_error(&ctx, "readdirSync", e))?;
+                    fs::read_dir(&path).or_else(|e| throw_error(&ctx, "readdirSync", e))?;
                 let mut result = Vec::new();
                 for entry in entries {
-                    let entry = entry.or_else(|e| throw_fs_error(&ctx, "readdirSync", e))?;
+                    let entry = entry.or_else(|e| throw_error(&ctx, "readdirSync", e))?;
                     result.push(entry.file_name().to_string_lossy().into_owned());
                 }
                 Ok(result)
@@ -73,7 +70,7 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
         Function::new(
             ctx.clone(),
             |ctx: Ctx<'_>, old_path: String, new_path: String| -> Result<()> {
-                fs::rename(&old_path, &new_path).or_else(|e| throw_fs_error(&ctx, "renameSync", e))
+                fs::rename(&old_path, &new_path).or_else(|e| throw_error(&ctx, "renameSync", e))
             },
         )?,
     )?;
@@ -85,7 +82,7 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
             |ctx: Ctx<'_>, src: String, dest: String| -> Result<()> {
                 fs::copy(&src, &dest)
                     .map(|_| ())
-                    .or_else(|e| throw_fs_error(&ctx, "copyFileSync", e))
+                    .or_else(|e| throw_error(&ctx, "copyFileSync", e))
             },
         )?,
     )?;

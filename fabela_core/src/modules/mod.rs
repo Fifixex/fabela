@@ -1,3 +1,4 @@
+pub mod child_process;
 pub mod console;
 pub mod fs;
 pub mod registry;
