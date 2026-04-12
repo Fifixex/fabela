@@ -14,10 +14,6 @@ const TRAILER_SIZE: u64 = 16;
 /// Compression level for zstd (1-22, 3 is default, good balance)
 const ZSTD_LEVEL: i32 = 19;
 
-pub struct BinaryOptions<'a> {
-    pub file: File,
-    pub entrypoint: &'a Path,
-}
 pub struct Binary;
 
 impl Binary {
