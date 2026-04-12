@@ -9,14 +9,14 @@ fn build_command(command: &str) -> Command {
     {
         let mut cmd = Command::new("cmd");
         cmd.args(["/C", command]);
-        return cmd;
+        cmd
     }
 
     #[cfg(not(windows))]
     {
         let mut cmd = Command::new("sh");
         cmd.args(["-c", command]);
-        return cmd;
+        cmd
     }
 }
 
