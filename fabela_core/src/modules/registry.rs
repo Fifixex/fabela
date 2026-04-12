@@ -1,7 +1,10 @@
-use rquickjs::{Ctx, Function, Object, Result, Exception};
+use rquickjs::{Ctx, Object, Result};
 
 #[cfg(windows)]
-use winreg::{enums::*, RegKey};
+use rquickjs::{Exception, Function};
+
+#[cfg(windows)]
+use winreg::{RegKey, enums::*};
 
 #[cfg(not(windows))]
 pub fn register(ctx: &Ctx<'_>) -> Result<()> {
@@ -23,8 +26,14 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
     registry.set("deleteKey", Function::new(ctx.clone(), delete_key)?)?;
     registry.set("deleteValue", Function::new(ctx.clone(), delete_value)?)?;
     registry.set("createKey", Function::new(ctx.clone(), create_key)?)?;
-    registry.set("setPolicyString", Function::new(ctx.clone(), set_policy_string)?)?;
-    registry.set("setPolicyDword", Function::new(ctx.clone(), set_policy_dword)?)?;
+    registry.set(
+        "setPolicyString",
+        Function::new(ctx.clone(), set_policy_string)?,
+    )?;
+    registry.set(
+        "setPolicyDword",
+        Function::new(ctx.clone(), set_policy_dword)?,
+    )?;
 
     globals.set("registry", registry)?;
     Ok(())
@@ -57,54 +66,79 @@ fn get_hkey(name: &str) -> Option<RegKey> {
 #[cfg(windows)]
 fn read_string(ctx: Ctx<'_>, root: String, subkey: String, name: String) -> Result<String> {
     let hkey = get_hkey(&root).ok_or_else(|| js_err_msg(&ctx, "Invalid root key"))?;
-    let key = hkey.open_subkey(&subkey).map_err(|e| js_err(&ctx, "Failed to open subkey", e))?;
-    let value: String = key.get_value(&name).map_err(|e| js_err(&ctx, "Failed to read string", e))?;
+    let key = hkey
+        .open_subkey(&subkey)
+        .map_err(|e| js_err(&ctx, "Failed to open subkey", e))?;
+    let value: String = key
+        .get_value(&name)
+        .map_err(|e| js_err(&ctx, "Failed to read string", e))?;
     Ok(value)
 }
 
 #[cfg(windows)]
 fn read_dword(ctx: Ctx<'_>, root: String, subkey: String, name: String) -> Result<u32> {
     let hkey = get_hkey(&root).ok_or_else(|| js_err_msg(&ctx, "Invalid root key"))?;
-    let key = hkey.open_subkey(&subkey).map_err(|e| js_err(&ctx, "Failed to open subkey", e))?;
-    let value: u32 = key.get_value(&name).map_err(|e| js_err(&ctx, "Failed to read dword", e))?;
+    let key = hkey
+        .open_subkey(&subkey)
+        .map_err(|e| js_err(&ctx, "Failed to open subkey", e))?;
+    let value: u32 = key
+        .get_value(&name)
+        .map_err(|e| js_err(&ctx, "Failed to read dword", e))?;
     Ok(value)
 }
 
 #[cfg(windows)]
-fn write_string(ctx: Ctx<'_>, root: String, subkey: String, name: String, value: String) -> Result<()> {
+fn write_string(
+    ctx: Ctx<'_>,
+    root: String,
+    subkey: String,
+    name: String,
+    value: String,
+) -> Result<()> {
     let hkey = get_hkey(&root).ok_or_else(|| js_err_msg(&ctx, "Invalid root key"))?;
-    let (key, _) = hkey.create_subkey(&subkey).map_err(|e| js_err(&ctx, "Failed to create/open subkey", e))?;
-    key.set_value(&name, &value).map_err(|e| js_err(&ctx, "Failed to write string", e))?;
+    let (key, _) = hkey
+        .create_subkey(&subkey)
+        .map_err(|e| js_err(&ctx, "Failed to create/open subkey", e))?;
+    key.set_value(&name, &value)
+        .map_err(|e| js_err(&ctx, "Failed to write string", e))?;
     Ok(())
 }
 
 #[cfg(windows)]
 fn write_dword(ctx: Ctx<'_>, root: String, subkey: String, name: String, value: u32) -> Result<()> {
     let hkey = get_hkey(&root).ok_or_else(|| js_err_msg(&ctx, "Invalid root key"))?;
-    let (key, _) = hkey.create_subkey(&subkey).map_err(|e| js_err(&ctx, "Failed to create/open subkey", e))?;
-    key.set_value(&name, &value).map_err(|e| js_err(&ctx, "Failed to write dword", e))?;
+    let (key, _) = hkey
+        .create_subkey(&subkey)
+        .map_err(|e| js_err(&ctx, "Failed to create/open subkey", e))?;
+    key.set_value(&name, &value)
+        .map_err(|e| js_err(&ctx, "Failed to write dword", e))?;
     Ok(())
 }
 
 #[cfg(windows)]
 fn delete_key(ctx: Ctx<'_>, root: String, subkey: String) -> Result<()> {
     let hkey = get_hkey(&root).ok_or_else(|| js_err_msg(&ctx, "Invalid root key"))?;
-    hkey.delete_subkey_all(&subkey).map_err(|e| js_err(&ctx, "Failed to delete subkey", e))?;
+    hkey.delete_subkey_all(&subkey)
+        .map_err(|e| js_err(&ctx, "Failed to delete subkey", e))?;
     Ok(())
 }
 
 #[cfg(windows)]
 fn delete_value(ctx: Ctx<'_>, root: String, subkey: String, name: String) -> Result<()> {
     let hkey = get_hkey(&root).ok_or_else(|| js_err_msg(&ctx, "Invalid root key"))?;
-    let key = hkey.open_subkey_with_flags(&subkey, KEY_SET_VALUE).map_err(|e| js_err(&ctx, "Failed to open subkey for delete", e))?;
-    key.delete_value(&name).map_err(|e| js_err(&ctx, "Failed to delete value", e))?;
+    let key = hkey
+        .open_subkey_with_flags(&subkey, KEY_SET_VALUE)
+        .map_err(|e| js_err(&ctx, "Failed to open subkey for delete", e))?;
+    key.delete_value(&name)
+        .map_err(|e| js_err(&ctx, "Failed to delete value", e))?;
     Ok(())
 }
 
 #[cfg(windows)]
 fn create_key(ctx: Ctx<'_>, root: String, subkey: String) -> Result<()> {
     let hkey = get_hkey(&root).ok_or_else(|| js_err_msg(&ctx, "Invalid root key"))?;
-    hkey.create_subkey(&subkey).map_err(|e| js_err(&ctx, "Failed to create subkey", e))?;
+    hkey.create_subkey(&subkey)
+        .map_err(|e| js_err(&ctx, "Failed to create subkey", e))?;
     Ok(())
 }
 
