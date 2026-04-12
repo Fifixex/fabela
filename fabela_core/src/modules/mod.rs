@@ -1,4 +1,5 @@
 pub mod console;
+pub mod fs;
 pub mod registry;
 
 use rquickjs::{Ctx, Result};
@@ -7,5 +8,6 @@ use rquickjs::{Ctx, Result};
 pub fn register_all(ctx: &Ctx<'_>) -> Result<()> {
     console::register(ctx)?;
     registry::register(ctx)?;
+    fs::register(ctx)?;
     Ok(())
 }
