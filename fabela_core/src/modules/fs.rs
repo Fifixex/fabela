@@ -12,16 +12,22 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
 
     fs_obj.set(
         "readFileSync",
-        Function::new(ctx.clone(), |ctx: Ctx<'_>, path: String| -> Result<String> {
-            fs::read_to_string(&path).or_else(|e| throw_fs_error(&ctx, "readFileSync", e))
-        })?,
+        Function::new(
+            ctx.clone(),
+            |ctx: Ctx<'_>, path: String| -> Result<String> {
+                fs::read_to_string(&path).or_else(|e| throw_fs_error(&ctx, "readFileSync", e))
+            },
+        )?,
     )?;
 
     fs_obj.set(
         "writeFileSync",
-        Function::new(ctx.clone(), |ctx: Ctx<'_>, path: String, data: String| -> Result<()> {
-            fs::write(&path, &data).or_else(|e| throw_fs_error(&ctx, "writeFileSync", e))
-        })?,
+        Function::new(
+            ctx.clone(),
+            |ctx: Ctx<'_>, path: String, data: String| -> Result<()> {
+                fs::write(&path, &data).or_else(|e| throw_fs_error(&ctx, "writeFileSync", e))
+            },
+        )?,
     )?;
 
     fs_obj.set(
@@ -47,29 +53,41 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
 
     fs_obj.set(
         "readdirSync",
-        Function::new(ctx.clone(), |ctx: Ctx<'_>, path: String| -> Result<Vec<String>> {
-            let entries = fs::read_dir(&path).or_else(|e| throw_fs_error(&ctx, "readdirSync", e))?;
-            let mut result = Vec::new();
-            for entry in entries {
-                let entry = entry.or_else(|e| throw_fs_error(&ctx, "readdirSync", e))?;
-                result.push(entry.file_name().to_string_lossy().into_owned());
-            }
-            Ok(result)
-        })?,
+        Function::new(
+            ctx.clone(),
+            |ctx: Ctx<'_>, path: String| -> Result<Vec<String>> {
+                let entries =
+                    fs::read_dir(&path).or_else(|e| throw_fs_error(&ctx, "readdirSync", e))?;
+                let mut result = Vec::new();
+                for entry in entries {
+                    let entry = entry.or_else(|e| throw_fs_error(&ctx, "readdirSync", e))?;
+                    result.push(entry.file_name().to_string_lossy().into_owned());
+                }
+                Ok(result)
+            },
+        )?,
     )?;
 
     fs_obj.set(
         "renameSync",
-        Function::new(ctx.clone(), |ctx: Ctx<'_>, old_path: String, new_path: String| -> Result<()> {
-            fs::rename(&old_path, &new_path).or_else(|e| throw_fs_error(&ctx, "renameSync", e))
-        })?,
+        Function::new(
+            ctx.clone(),
+            |ctx: Ctx<'_>, old_path: String, new_path: String| -> Result<()> {
+                fs::rename(&old_path, &new_path).or_else(|e| throw_fs_error(&ctx, "renameSync", e))
+            },
+        )?,
     )?;
 
     fs_obj.set(
         "copyFileSync",
-        Function::new(ctx.clone(), |ctx: Ctx<'_>, src: String, dest: String| -> Result<()> {
-            fs::copy(&src, &dest).map(|_| ()).or_else(|e| throw_fs_error(&ctx, "copyFileSync", e))
-        })?,
+        Function::new(
+            ctx.clone(),
+            |ctx: Ctx<'_>, src: String, dest: String| -> Result<()> {
+                fs::copy(&src, &dest)
+                    .map(|_| ())
+                    .or_else(|e| throw_fs_error(&ctx, "copyFileSync", e))
+            },
+        )?,
     )?;
 
     globals.set("fs", fs_obj)?;
