@@ -1,8 +1,8 @@
-use rquickjs::{Ctx, Function, Result};
+use rquickjs::{Ctx, Function, Object, Result};
 
 pub fn register(ctx: &Ctx<'_>) -> Result<()> {
     let globals = ctx.globals();
-    let console = rquickjs::Object::new(ctx.clone())?;
+    let console = Object::new(ctx.clone())?;
 
     console.set(
         "log",
