@@ -24,25 +24,22 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
     let globals = ctx.globals();
     let child_process = Object::new(ctx.clone())?;
 
-    let ctx_clone = ctx.clone();
     child_process.set(
         "execSync",
-        Function::new(ctx.clone(), move |command: String| -> Result<Object> {
-            let output = build_command(&command)
-                .output()
-                .or_else(|e| throw_error(&ctx_clone, "execSync", e))?;
+        Function::new(
+            ctx.clone(),
+            |ctx: Ctx<'_>, command: String| -> Result<Vec<String>> {
+                let output = build_command(&command)
+                    .output()
+                    .or_else(|e| throw_error(&ctx, "execSync", e))?;
 
-            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-            let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-            let status = output.status.code().unwrap_or(-1);
+                let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+                let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+                let status = output.status.code().unwrap_or(-1).to_string();
 
-            let result = Object::new(ctx_clone.clone())?;
-            result.set("stdout", stdout)?;
-            result.set("stderr", stderr)?;
-            result.set("status", status)?;
-
-            Ok(result)
-        })?,
+                Ok(vec![stdout, stderr, status])
+            },
+        )?,
     )?;
 
     globals.set("child_process", child_process)?;
