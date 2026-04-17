@@ -1,0 +1,41 @@
+use rquickjs::{Ctx, Function, JsLifetime, Object, Result};
+use rusqlite::Connection;
+use std::cell::RefCell;
+use std::rc::Rc;
+
+#[derive(rquickjs::class::Trace, JsLifetime)]
+#[rquickjs::class]
+pub struct Database {
+    #[qjs(skip_trace)]
+    db: Rc<RefCell<Option<Connection>>>,
+}
+
+#[rquickjs::methods]
+impl Database {
+    #[qjs(constructor)]
+    pub fn new(ctx: Ctx<'_>, path: String) -> Result<Self> {
+        let conn = Connection::open(path).map_err(|e| {
+            rquickjs::Exception::throw_message(&ctx, &e.to_string());
+            rquickjs::Error::Exception
+        })?;
+
+        Ok(Self {
+            db: Rc::new(RefCell::new(Some(conn))),
+        })
+    }
+}
+
+pub fn register(ctx: &Ctx<'_>) -> Result<()> {
+    let globals = ctx.globals();
+    let sqlite = Object::new(ctx.clone())?;
+
+    sqlite.set(
+        "open",
+        Function::new(ctx.clone(), |ctx: Ctx<'_>, path: String| -> Result<Database> {
+            Database::new(ctx, path)
+        })?,
+    )?;
+
+    globals.set("sqlite", sqlite)?;
+    Ok(())
+}

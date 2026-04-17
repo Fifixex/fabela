@@ -3,6 +3,7 @@ pub mod console;
 pub mod fs;
 pub mod os;
 pub mod registry;
+pub mod sqlite3;
 
 use rquickjs::{Ctx, Result};
 
@@ -13,5 +14,6 @@ pub fn register_all(ctx: &Ctx<'_>) -> Result<()> {
     fs::register(ctx)?;
     os::register(ctx)?;
     child_process::register(ctx)?;
+    sqlite3::register(ctx)?;
     Ok(())
 }
