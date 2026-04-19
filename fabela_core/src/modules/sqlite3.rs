@@ -3,6 +3,10 @@ use rusqlite::Connection;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::helpers::throw::throw;
+
+type Db = Rc<RefCell<Option<Connection>>>;
+
 #[derive(rquickjs::class::Trace, JsLifetime)]
 #[rquickjs::class]
 pub struct Database {
