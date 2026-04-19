@@ -11,7 +11,20 @@ type Db = Rc<RefCell<Option<Connection>>>;
 #[rquickjs::class]
 pub struct Database {
     #[qjs(skip_trace)]
-    db: Rc<RefCell<Option<Connection>>>,
+    db: Db,
+}
+
+fn get_conn<'a>(ctx: &Ctx<'_>, db: &'a Db) -> Result<std::cell::Ref<'a, Option<Connection>>> {
+    let conn = db.try_borrow().map_err(|_| {
+        Exception::throw_message(ctx, "database busy");
+        rquickjs::Error::Exception
+    })?;
+
+    if conn.is_none() {
+        return throw(ctx, "database closed");
+    }
+
+    Ok(conn)
 }
 
 #[rquickjs::methods]
@@ -32,7 +45,7 @@ impl Database {
     }
 
     pub fn exec(&self, ctx: Ctx<'_>, sql: String) -> Result<()> {
-        let conn_ref = self.db.borrow();
+        let conn_ref = get_conn(&ctx, &self.db)?;
         let conn = conn_ref.as_ref().unwrap();
 
         conn.execute_batch(&sql).map_err(|e| {
