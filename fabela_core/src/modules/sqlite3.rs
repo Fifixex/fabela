@@ -23,6 +23,18 @@ impl Database {
             db: Rc::new(RefCell::new(Some(conn))),
         })
     }
+
+    pub fn exec(&self, ctx: Ctx<'_>, sql: String) -> Result<()> {
+        let conn_ref = self.db.borrow();
+        let conn = conn_ref.as_ref().unwrap();
+
+        conn.execute_batch(&sql).map_err(|e| {
+            Exception::throw_message(&ctx, &e.to_string());
+            rquickjs::Error::Exception
+        })?;
+
+        Ok(())
+    }
 }
 
 pub fn register(ctx: &Ctx<'_>) -> Result<()> {
@@ -31,9 +43,10 @@ pub fn register(ctx: &Ctx<'_>) -> Result<()> {
 
     sqlite.set(
         "open",
-        Function::new(ctx.clone(), |ctx: Ctx<'_>, path: String| -> Result<Database> {
-            Database::new(ctx, path)
-        })?,
+        Function::new(
+            ctx.clone(),
+            |ctx: Ctx<'_>, path: String| -> Result<Database> { Database::new(ctx, path) },
+        )?,
     )?;
 
     globals.set("sqlite", sqlite)?;
