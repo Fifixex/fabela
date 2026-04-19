@@ -19,6 +19,9 @@ impl Database {
             rquickjs::Error::Exception
         })?;
 
+        conn.execute_batch("PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;")
+            .ok();
+
         Ok(Self {
             db: Rc::new(RefCell::new(Some(conn))),
         })
