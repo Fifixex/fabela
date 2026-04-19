@@ -8,7 +8,7 @@ pub mod sqlite3;
 use rquickjs::{Ctx, Result};
 
 /// Register all native modules into the QuickJS context.
-pub fn register_all(ctx: &Ctx<'_>) -> Result<()> {
+pub fn register_all<'js>(ctx: &Ctx<'js>) -> Result<()> {
     console::register(ctx)?;
     registry::register(ctx)?;
     fs::register(ctx)?;
