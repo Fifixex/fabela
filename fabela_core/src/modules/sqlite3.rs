@@ -1,4 +1,4 @@
-use rquickjs::{Ctx, Exception, Function, JsLifetime, Object, Result};
+use rquickjs::{Ctx, Exception, Function, JsLifetime, Object, Result, Value};
 use rusqlite::Connection;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -12,6 +12,14 @@ type Db = Rc<RefCell<Option<Connection>>>;
 pub struct Database {
     #[qjs(skip_trace)]
     db: Db,
+}
+
+#[derive(rquickjs::class::Trace, JsLifetime)]
+#[rquickjs::class]
+pub struct Statement {
+    #[qjs(skip_trace)]
+    db: Db,
+    sql: String,
 }
 
 fn get_conn<'a>(ctx: &Ctx<'_>, db: &'a Db) -> Result<std::cell::Ref<'a, Option<Connection>>> {
@@ -54,6 +62,38 @@ impl Database {
         })?;
 
         Ok(())
+    }
+
+    pub fn prepare(&self, ctx: Ctx<'_>, sql: String) -> Result<Statement> {
+        let _ = get_conn(&ctx, &self.db)?;
+        Ok(Statement {
+            db: self.db.clone(),
+            sql,
+        })
+    }
+
+    pub fn close(&self, ctx: Ctx<'_>) -> Result<()> {
+        let mut conn_ref = self.db.borrow_mut();
+
+        if let Some(conn) = conn_ref.take() {
+            conn.close().ok();
+        } else {
+            return throw(&ctx, "database already closed");
+        }
+
+        Ok(())
+    }
+}
+
+#[rquickjs::methods]
+impl Statement {
+    pub fn run<'js>(
+        &self,
+        ctx: Ctx<'js>,
+        args: rquickjs::function::Rest<Value<'js>>,
+    ) -> Result<Object<'js>> {
+        let obj = Object::new(ctx.clone())?;
+        Ok(obj)
     }
 }
 
