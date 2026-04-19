@@ -1,4 +1,4 @@
-use rquickjs::{Ctx, Function, JsLifetime, Object, Result};
+use rquickjs::{Ctx, Exception, Function, JsLifetime, Object, Result};
 use rusqlite::Connection;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -15,7 +15,7 @@ impl Database {
     #[qjs(constructor)]
     pub fn new(ctx: Ctx<'_>, path: String) -> Result<Self> {
         let conn = Connection::open(path).map_err(|e| {
-            rquickjs::Exception::throw_message(&ctx, &e.to_string());
+            Exception::throw_message(&ctx, &e.to_string());
             rquickjs::Error::Exception
         })?;
 
