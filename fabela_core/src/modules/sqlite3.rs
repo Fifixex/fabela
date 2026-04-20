@@ -127,8 +127,9 @@ fn js_values_to_params(ctx: &Ctx<'_>, values: &[Value]) -> Result<Vec<Box<dyn To
 
     for val in values {
         if val.is_null() || val.is_undefined() {
-        } else if let Some(s) = val.as_string() {
             params.push(Box::new(rusqlite::types::Null));
+        } else if let Some(s) = val.as_string() {
+            params.push(Box::new(s.to_string()?));
         } else if let Some(i) = val.as_int() {
             params.push(Box::new(i as i64));
         } else if let Some(f) = val.as_float() {
