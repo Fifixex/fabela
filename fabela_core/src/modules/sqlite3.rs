@@ -120,6 +120,22 @@ impl Statement {
 
         Ok(obj)
     }
+
+    pub fn get<'js>(
+        &self,
+        ctx: Ctx<'js>,
+        args: rquickjs::function::Rest<Value<'js>>,
+    ) -> Result<Value<'js>> {
+        unimplemented!()
+    }
+
+    pub fn all<'js>(
+        &self,
+        ctx: Ctx<'js>,
+        args: rquickjs::function::Rest<Value<'js>>,
+    ) -> Result<Value<'js>> {
+        unimplemented!()
+    }
 }
 
 fn js_values_to_params(ctx: &Ctx<'_>, values: &[Value]) -> Result<Vec<Box<dyn ToSql>>> {
