@@ -1,5 +1,5 @@
 use rquickjs::{Ctx, Exception, Function, JsLifetime, Object, Result, Value};
-use rusqlite::Connection;
+use rusqlite::{Connection, ToSql, params_from_iter};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -33,6 +33,17 @@ fn get_conn<'a>(ctx: &Ctx<'_>, db: &'a Db) -> Result<std::cell::Ref<'a, Option<C
     }
 
     Ok(conn)
+}
+
+fn prepare_cached<'a>(
+    ctx: &Ctx<'_>,
+    conn: &'a Connection,
+    sql: &str,
+) -> Result<rusqlite::CachedStatement<'a>> {
+    conn.prepare_cached(sql).map_err(|e| {
+        Exception::throw_message(ctx, &e.to_string());
+        rquickjs::Error::Exception
+    })
 }
 
 #[rquickjs::methods]
@@ -92,9 +103,44 @@ impl Statement {
         ctx: Ctx<'js>,
         args: rquickjs::function::Rest<Value<'js>>,
     ) -> Result<Object<'js>> {
+        let conn_ref = get_conn(&ctx, &self.db)?;
+        let conn = conn_ref.as_ref().unwrap();
+
+        let mut stmt = prepare_cached(&ctx, conn, &self.sql)?;
+
+        let params = js_values_to_params(&ctx, &args.0)?;
+        let changes = stmt.execute(params_from_iter(params)).map_err(|e| {
+            Exception::throw_message(&ctx, &e.to_string());
+            rquickjs::Error::Exception
+        })?;
+
         let obj = Object::new(ctx.clone())?;
+        obj.set("changes", changes)?;
+        obj.set("lastInsertRowid", conn.last_insert_rowid())?;
+
         Ok(obj)
     }
+}
+
+fn js_values_to_params(ctx: &Ctx<'_>, values: &[Value]) -> Result<Vec<Box<dyn ToSql>>> {
+    let mut params: Vec<Box<dyn ToSql>> = Vec::with_capacity(values.len());
+
+    for val in values {
+        if val.is_null() || val.is_undefined() {
+        } else if let Some(s) = val.as_string() {
+            params.push(Box::new(rusqlite::types::Null));
+        } else if let Some(i) = val.as_int() {
+            params.push(Box::new(i as i64));
+        } else if let Some(f) = val.as_float() {
+            params.push(Box::new(f));
+        } else if let Some(b) = val.as_bool() {
+            params.push(Box::new(b));
+        } else {
+            return throw(ctx, "unsupported paramter type");
+        }
+    }
+
+    Ok(params)
 }
 
 pub fn register(ctx: &Ctx<'_>) -> Result<()> {
