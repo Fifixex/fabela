@@ -126,7 +126,26 @@ impl Statement {
         ctx: Ctx<'js>,
         args: rquickjs::function::Rest<Value<'js>>,
     ) -> Result<Value<'js>> {
-        unimplemented!()
+        let conn_ref = get_conn(&ctx, &self.db)?;
+        let conn = conn_ref.as_ref().unwrap();
+
+        let mut stmt = prepare_cached(&ctx, conn, &self.sql)?;
+
+        let params = js_values_to_params(&ctx, &args.0)?;
+        let mut rows = stmt.query(params_from_iter(params)).map_err(|e| {
+            Exception::throw_message(&ctx, &e.to_string());
+            rquickjs::Error::Exception
+        })?;
+
+        if let Some(row) = rows.next().map_err(|e| {
+            Exception::throw_message(&ctx, &e.to_string());
+            rquickjs::Error::Exception
+        })? {
+            println!("{:?}", row);
+            Ok(Value::new_undefined(ctx))
+        } else {
+            Ok(Value::new_null(ctx))
+        }
     }
 
     pub fn all<'js>(
