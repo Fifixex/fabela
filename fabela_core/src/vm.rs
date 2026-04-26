@@ -1,4 +1,4 @@
-use rquickjs::{Context, Runtime};
+use rquickjs::{Context, Ctx, Runtime};
 use std::path::Path;
 
 use crate::{
@@ -43,8 +43,7 @@ impl Vm {
     pub fn run_source(&self, source: &str) -> crate::error::Result<()> {
         self.context.with(|ctx| {
             ctx.eval::<(), _>(source)
-                .map_err(|e| FabelaError::Vm(format!("JavaScript evaluation error: {e}")))
-                .map(|_| ())
+                .map_err(|e| format_exception(&ctx, e))
         })
     }
 
@@ -55,5 +54,36 @@ impl Vm {
                 .map_err(|e| FabelaError::Vm(format!("Error executing pending job: {e}")))?;
         }
         Ok(())
+    }
+}
+
+#[inline]
+fn format_exception(ctx: &Ctx<'_>, err: rquickjs::Error) -> FabelaError {
+    match err {
+        rquickjs::Error::Exception => {
+            let exception = ctx.catch();
+
+            if let Some(exc) = exception.as_exception() {
+                let name = exc
+                    .as_object()
+                    .get::<_, Option<String>>("name")
+                    .ok()
+                    .flatten()
+                    .unwrap_or_else(|| "Error".to_string());
+
+                let message = exc.message().unwrap_or_else(|| "Unknown error".to_string());
+                let stack = exc.stack().unwrap_or_default();
+
+                if stack.is_empty() {
+                    FabelaError::Vm(format!("{name}: {message}"))
+                } else {
+                    FabelaError::Vm(format!("{name}: {message}\n{stack}"))
+                }
+            } else {
+                FabelaError::Vm("Unknown JavaScript exception".to_string())
+            }
+        }
+
+        other => FabelaError::Vm(format!("Internal JS error: {other}")),
     }
 }
