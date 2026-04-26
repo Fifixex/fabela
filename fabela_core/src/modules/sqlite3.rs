@@ -168,6 +168,21 @@ impl Statement {
     }
 }
 
+fn sqlite_to_js<'js>(ctx: Ctx<'js>, val: rusqlite::types::ValueRef<'_>) -> Result<Value<'js>> {
+    match val {
+        rusqlite::types::ValueRef::Null => Ok(Value::new_null(ctx)),
+        rusqlite::types::ValueRef::Integer(i) => Ok(Value::new_float(ctx, i as f64)),
+        rusqlite::types::ValueRef::Real(f) => Ok(Value::new_float(ctx, f)),
+        rusqlite::types::ValueRef::Text(s) => {
+            let s = std::str::from_utf8(s).unwrap_or("");
+            Ok(rquickjs::String::from_str(ctx, &s)?.into_value())
+        }
+        rusqlite::types::ValueRef::Blob(b) => {
+            return throw(&ctx, "blob not supported");
+        }
+    }
+}
+
 fn js_values_to_params(ctx: &Ctx<'_>, values: &[Value]) -> Result<Vec<Box<dyn ToSql>>> {
     let mut params: Vec<Box<dyn ToSql>> = Vec::with_capacity(values.len());
 
