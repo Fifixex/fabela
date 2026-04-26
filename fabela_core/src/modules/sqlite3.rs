@@ -131,6 +131,8 @@ impl Statement {
 
         let mut stmt = prepare_cached(&ctx, conn, &self.sql)?;
 
+        let column_names: Vec<String> = stmt.column_names().iter().map(|c| c.to_string()).collect();
+
         let params = js_values_to_params(&ctx, &args.0)?;
         let mut rows = stmt.query(params_from_iter(params)).map_err(|e| {
             Exception::throw_message(&ctx, &e.to_string());
@@ -141,6 +143,15 @@ impl Statement {
             Exception::throw_message(&ctx, &e.to_string());
             rquickjs::Error::Exception
         })? {
+            let obj = Object::new(ctx.clone())?;
+            for (i, name) in column_names.iter().enumerate() {
+                let val = row.get_ref(i).map_err(|e| {
+                    Exception::throw_message(&ctx, &e.to_string());
+                    rquickjs::Error::Exception
+                })?;
+
+                obj.set(name, sqlite_to_js(ctx.clone(), val)?)?;
+            }
             println!("{:?}", row);
             Ok(Value::new_undefined(ctx))
         } else {
