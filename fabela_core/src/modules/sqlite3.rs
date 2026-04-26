@@ -198,7 +198,7 @@ fn js_values_to_params(ctx: &Ctx<'_>, values: &[Value]) -> Result<Vec<Box<dyn To
         } else if let Some(b) = val.as_bool() {
             params.push(Box::new(b));
         } else {
-            return throw(ctx, "unsupported paramter type");
+            return throw(ctx, "unsupported parameter type");
         }
     }
 
