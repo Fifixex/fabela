@@ -46,6 +46,26 @@ fn prepare_cached<'a>(
     })
 }
 
+#[inline]
+fn row_to_object<'js>(
+    ctx: &Ctx<'js>,
+    row: &rusqlite::Row,
+    column_names: &[String],
+) -> Result<Object<'js>> {
+    let obj = Object::new(ctx.clone())?;
+
+    for (i, name) in column_names.iter().enumerate() {
+        let val = row.get_ref(i).map_err(|e| {
+            Exception::throw_message(&ctx, &e.to_string());
+            rquickjs::Error::Exception
+        })?;
+
+        obj.set(name, sqlite_to_js(ctx.clone(), val)?)?;
+    }
+
+    Ok(obj)
+}
+
 #[rquickjs::methods]
 impl Database {
     #[qjs(constructor)]
@@ -143,17 +163,8 @@ impl Statement {
             Exception::throw_message(&ctx, &e.to_string());
             rquickjs::Error::Exception
         })? {
-            let obj = Object::new(ctx.clone())?;
-            for (i, name) in column_names.iter().enumerate() {
-                let val = row.get_ref(i).map_err(|e| {
-                    Exception::throw_message(&ctx, &e.to_string());
-                    rquickjs::Error::Exception
-                })?;
-
-                obj.set(name, sqlite_to_js(ctx.clone(), val)?)?;
-            }
-            println!("{:?}", row);
-            Ok(Value::new_undefined(ctx))
+            let obj = row_to_object(&ctx, row, &column_names)?;
+            Ok(obj.into_value())
         } else {
             Ok(Value::new_null(ctx))
         }
