@@ -211,7 +211,7 @@ fn sqlite_to_js<'js>(ctx: Ctx<'js>, val: rusqlite::types::ValueRef<'_>) -> Resul
         rusqlite::types::ValueRef::Real(f) => Ok(Value::new_float(ctx, f)),
         rusqlite::types::ValueRef::Text(s) => {
             let s = std::str::from_utf8(s).unwrap_or("");
-            Ok(rquickjs::String::from_str(ctx, &s)?.into_value())
+            Ok(rquickjs::String::from_str(ctx, s)?.into_value())
         }
         rusqlite::types::ValueRef::Blob(_) => throw(&ctx, "blob not supported"),
     }
