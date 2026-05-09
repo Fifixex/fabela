@@ -56,7 +56,7 @@ fn row_to_object<'js>(
 
     for (i, name) in column_names.iter().enumerate() {
         let val = row.get_ref(i).map_err(|e| {
-            Exception::throw_message(&ctx, &e.to_string());
+            Exception::throw_message(ctx, &e.to_string());
             rquickjs::Error::Exception
         })?;
 
@@ -175,7 +175,32 @@ impl Statement {
         ctx: Ctx<'js>,
         args: rquickjs::function::Rest<Value<'js>>,
     ) -> Result<Value<'js>> {
-        unimplemented!()
+        let conn_ref = get_conn(&ctx, &self.db)?;
+        let conn = conn_ref.as_ref().unwrap();
+
+        let mut stmt = prepare_cached(&ctx, conn, &self.sql)?;
+
+        let column_names: Vec<String> = stmt.column_names().iter().map(|c| c.to_string()).collect();
+
+        let params = js_values_to_params(&ctx, &args.0)?;
+        let mut rows = stmt.query(params_from_iter(params)).map_err(|e| {
+            Exception::throw_message(&ctx, &e.to_string());
+            rquickjs::Error::Exception
+        })?;
+
+        let result = rquickjs::Array::new(ctx.clone())?;
+        let mut i = 0;
+
+        while let Some(row) = rows.next().map_err(|e| {
+            Exception::throw_message(&ctx, &e.to_string());
+            rquickjs::Error::Exception
+        })? {
+            let obj = row_to_object(&ctx, row, &column_names)?;
+            result.set(i, obj)?;
+            i += 1;
+        }
+
+        Ok(result.into_value())
     }
 }
 
@@ -188,9 +213,7 @@ fn sqlite_to_js<'js>(ctx: Ctx<'js>, val: rusqlite::types::ValueRef<'_>) -> Resul
             let s = std::str::from_utf8(s).unwrap_or("");
             Ok(rquickjs::String::from_str(ctx, &s)?.into_value())
         }
-        rusqlite::types::ValueRef::Blob(b) => {
-            return throw(&ctx, "blob not supported");
-        }
+        rusqlite::types::ValueRef::Blob(_) => throw(&ctx, "blob not supported"),
     }
 }
 
