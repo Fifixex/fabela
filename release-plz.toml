@@ -1,0 +1,21 @@
+[workspace]
+git_only = true
+publish = false
+release_always = false
+git_release_enable = true
+git_tag_enable = true
+git_tag_name = "v{{ version }}"
+git_release_name = "v{{ version }}"
+
+[[package]]
+name = "fabela"
+version_group = "fabela"
+changelog_path = "CHANGELOG.md"
+changelog_include = ["fabela_core"]
+
+[[package]]
+name = "fabela_core"
+version_group = "fabela"
+changelog_update = false
+git_release_enable = false
+git_tag_enable = false
