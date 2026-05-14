@@ -2,7 +2,6 @@ pub mod child_process;
 pub mod console;
 pub mod fs;
 pub mod os;
-pub mod registry;
 pub mod sqlite3;
 
 use rquickjs::{Ctx, Result};
@@ -10,7 +9,6 @@ use rquickjs::{Ctx, Result};
 /// Register all native modules into the QuickJS context.
 pub fn register_all<'js>(ctx: &Ctx<'js>) -> Result<()> {
     console::register(ctx)?;
-    registry::register(ctx)?;
     fs::register(ctx)?;
     os::register(ctx)?;
     child_process::register(ctx)?;
